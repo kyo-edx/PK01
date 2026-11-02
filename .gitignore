@@ -1,0 +1,4 @@
+pencatatan_keuangan_*.json
+pencatatan_keuangan_*.csv
+*.bak
+cadangan/

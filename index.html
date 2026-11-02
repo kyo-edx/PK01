@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Pencatat Keuangan</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1 id="headerTitle">Beranda</h1>
+        </header>
+
+        <!-- VIEW 1: BERANDA -->
+        <div class="app-view active" id="view-home">
+            <div class="backup-reminder" id="backupReminder" role="status" hidden>
+                <span id="backupReminderText"></span>
+                <button type="button" class="backup-reminder-btn" id="backupReminderBtn">Ekspor sekarang</button>
+            </div>
+
+            <div class="card-total">
+                <h2>Pengeluaran Hari Ini</h2>
+                <div class="amount" id="todayTotal">Rp 0</div>
+            </div>
+
+            <div class="card-budget" id="budgetCard">
+                <div class="budget-header">
+                    <h2>Anggaran Minggu Ini</h2>
+                    <span id="budgetStatusText" class="budget-status-text">Belum diatur</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill green" id="progressFill"></div>
+                </div>
+                <div class="budget-info">
+                    <span id="budgetRemaining">Sisa: Rp 0</span>
+                    <span id="budgetPercentage">Terpakai 0%</span>
+                </div>
+                <div class="budget-warning" id="budgetWarning" hidden></div>
+            </div>
+
+            <form class="card-form" id="expenseForm">
+                <input type="hidden" id="editId">
+                
+                <div class="type-switch" id="typeSwitch">
+                    <button type="button" class="type-btn active" data-type="pengeluaran">Pengeluaran</button>
+                    <button type="button" class="type-btn" data-type="pemasukan">Pemasukan</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Nominal (Rp)</label>
+                    <input type="number" id="amount" inputmode="numeric" placeholder="Contoh: 50000" required min="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <div class="category-grid" id="categoryGrid"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Tanggal</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="note">Catatan (Opsional)</label>
+                    <input type="text" id="note" placeholder="Misal: Gaji bulanan, bensin...">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="submitBtn">Tambah Transaksi</button>
+                    <button type="button" class="btn-cancel" id="cancelBtn" hidden>Batal</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- VIEW 2: RIWAYAT -->
+        <div class="app-view" id="view-history">
+            <div class="filter-section">
+                <h3>Filter & Ringkasan Periode</h3>
+                <div class="filter-controls">
+                    <select id="periodFilter">
+                        <option value="all">Semua Waktu</option>
+                        <option value="week">Minggu Ini</option>
+                        <option value="month" selected>Bulan Ini</option>
+                    </select>
+                    <select id="catFilter">
+                        <option value="all">Semua Kategori</option>
+                    </select>
+                </div>
+
+                <div class="card-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Pemasukan</span>
+                        <span class="summary-value income" id="summaryIncome">Rp 0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Pengeluaran</span>
+                        <span class="summary-value expense" id="summaryExpense">Rp 0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Selisih</span>
+                        <span class="summary-value" id="summaryNet">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transactions-section">
+                <h3>Riwayat Transaksi</h3>
+                <div class="tx-list" id="txList"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: ANGGARAN & CADANGAN DATA -->
+        <div class="app-view" id="view-budget">
+            <div class="card-form">
+                <h3>Pengaturan Batas Anggaran</h3>
+                <div class="form-group">
+                    <label for="totalBudgetLimit">Batas Total Mingguan (Rp)</label>
+                    <input type="number" id="totalBudgetLimit" inputmode="numeric" placeholder="Contoh: 1000000" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Batas Per Kategori (Opsional)</label>
+                    <div id="categoryBudgetInputs" class="cat-budget-inputs"></div>
+                </div>
+                <button type="button" class="btn-submit" id="saveBudgetBtn">Simpan Pengaturan Anggaran</button>
+            </div>
+
+            <div class="card-form">
+                <h3>Cadangan & Pemulihan Data</h3>
+                <div class="backup-actions">
+                    <button type="button" class="btn-action" id="exportJsonBtn">Ekspor ke JSON</button>
+                    <button type="button" class="btn-action" id="exportCsvBtn">Ekspor ke CSV</button>
+                    <label for="importJsonFile" class="btn-action import-label">Impor dari JSON</label>
+                    <input type="file" id="importJsonFile" accept=".json" hidden>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: RINGKASAN (GRAFIK BULAN INI) -->
+        <div class="app-view" id="view-summary">
+            <div class="card-form">
+                <h3>Pengeluaran per Kategori (Bulan Ini)</h3>
+                <div id="chartContainer" class="chart-container"></div>
+                <div id="categoryBreakdownList" class="breakdown-list"></div>
+            </div>
+        </div>
+
+        <!-- NAVIGASI BAWAH -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-view="view-home">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>Beranda</span>
+            </button>
+            <button class="nav-btn" data-view="view-history">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                <span>Riwayat</span>
+            </button>
+            <button class="nav-btn" data-view="view-budget">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                <span>Anggaran</span>
+            </button>
+            <button class="nav-btn" data-view="view-summary">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                <span>Ringkasan</span>
+            </button>
+        </nav>
+    </div>
+
+</body>
+</html>
